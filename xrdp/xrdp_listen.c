@@ -21,6 +21,7 @@
 */
 
 #include "xrdp.h"
+#include "log.h"
 
 /* 'g_process' is protected by the semaphore 'g_process_sem'.  One thread sets
    g_process and waits for the other to process it */
@@ -220,7 +221,8 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
   if (xrdp_listen_get_port_address(port, sizeof(port),
                                    address, sizeof(address)) != 0)
   {
-    g_writeln("xrdp_listen_main_loop: xrdp_listen_get_port failed");
+    log_message(LOG_LEVEL_ERROR,"xrdp_listen_main_loop:"
+            "xrdp_listen_get_port failed");
     self->status = -1;
     return 1;
   }
@@ -306,8 +308,8 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
   }
   else
   {
-    g_writeln("xrdp_listen_main_loop: listen error, possible port "
-              "already in use");
+    log_message(LOG_LEVEL_ERROR,"xrdp_listen_main_loop: listen error,"
+            "possible port already in use");
   }
   self->status = -1;
   return 0;

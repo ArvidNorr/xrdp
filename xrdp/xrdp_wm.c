@@ -21,6 +21,7 @@
 */
 
 #include "xrdp.h"
+#include "log.h"
 
 /*****************************************************************************/
 struct xrdp_wm* APP_CC
@@ -46,6 +47,7 @@ xrdp_wm_create(struct xrdp_process* owner,
   pid = g_getpid();
   g_snprintf(event_name, 255, "xrdp_%8.8x_wm_login_mode_event_%8.8x",
              pid, owner->session_id);
+  log_message(LOG_LEVEL_DEBUG,event_name);
   self->login_mode_event = g_create_wait_obj(event_name);
   self->painter = xrdp_painter_create(self, self->session);
   self->cache = xrdp_cache_create(self, self->session, self->client_info);
@@ -200,8 +202,8 @@ xrdp_wm_load_pointer(struct xrdp_wm* self, char* file_name, char* data,
 
   if (!g_file_exist(file_name))
   {
-    g_writeln("xrdp_wm_load_pointer: error pointer file [%s] does not exist",
-              file_name);
+    log_message(LOG_LEVEL_ERROR,"xrdp_wm_load_pointer: "
+            "error pointer file [%s] does not exist",file_name);
     return 1;
   }
   make_stream(fs);
@@ -209,8 +211,8 @@ xrdp_wm_load_pointer(struct xrdp_wm* self, char* file_name, char* data,
   fd = g_file_open(file_name);
   if (fd < 1)
   {
-    g_writeln("xrdp_wm_load_pointer: error loading pointer from file [%s]",
-              file_name);
+    log_message(LOG_LEVEL_ERROR,"xrdp_wm_load_pointer:"
+            "error loading pointer from file [%s]",file_name);
     return 1;
   }
   g_file_read(fd, fs->data, 8192);
@@ -403,7 +405,8 @@ xrdp_wm_load_static_colors(struct xrdp_wm* self)
   } 
   else
   { 
-    g_writeln("xrdp_wm_load_static_colors: Could not read xrdp.ini file %s", cfg_file);
+    log_message(LOG_LEVEL_ERROR,"xrdp_wm_load_static_colors:"
+            "Could not read xrdp.ini file %s", cfg_file);
   }
 
   if (self->screen->bpp == 8)
@@ -532,7 +535,8 @@ xrdp_wm_init(struct xrdp_wm* self)
     }
     else
     {
-      g_writeln("xrdp_wm_init: Could not read xrdp.ini file %s", cfg_file);
+      log_message(LOG_LEVEL_ERROR,"xrdp_wm_init:"
+              "Could not read xrdp.ini file %s", cfg_file);
     }
   }
   else
@@ -1573,6 +1577,7 @@ xrdp_wm_log_msg(struct xrdp_wm* self, char* msg)
     /* set notify function */
     self->log_wnd->notify = xrdp_wm_log_wnd_notify;
   }
+  log_message(LOG_LEVEL_DEBUG,msg);
   xrdp_wm_set_focused(self, self->log_wnd);
   xrdp_bitmap_invalidate(self->log_wnd, 0);
   g_sleep(100);

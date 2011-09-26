@@ -22,6 +22,7 @@
 
 #include "xrdp-freerdp.h"
 #include "xrdp-color.h"
+#include "log.h"
 
 #define GET_MOD(_inst) ((struct mod*)((_inst)->param1))
 #define SET_MOD(_inst, _mod) ((_inst)->param1) = _mod
@@ -189,6 +190,7 @@ static int DEFAULT_CC
 lib_mod_set_param(struct mod* mod, char* name, char* value)
 {
   g_writeln("lib_mod_set_param: name [%s] value [%s]", name, value);
+  log_message(LOG_LEVEL_DEBUG,"lib_mod_set_param: name [%s] value [%s]", name, value);
   if (g_strcmp(name, "hostname") == 0)
   {
     g_strncpy(mod->settings->hostname, value, sizeof(mod->settings->hostname));

@@ -24,6 +24,7 @@
 #include <windows.h>
 #endif
 #include "xrdp.h"
+#include "log.h"
 
 static struct xrdp_listen* g_listen = 0;
 static long g_threadid = 0; /* main threadid */
@@ -270,6 +271,8 @@ main(int argc, char** argv)
 {
   int test;
   int host_be;
+  char cfg_file[256];
+  enum logReturns error;
 #if defined(_WIN32)
   WSADATA w;
   SC_HANDLE sc_man;
@@ -281,7 +284,7 @@ main(int argc, char** argv)
   int fd;
   int no_daemon;
   char text[256];
-  char pid_file[256];
+  char pid_file[256];  
 #endif
 
   g_init();
@@ -319,6 +322,25 @@ main(int argc, char** argv)
   {
     g_writeln("unusable tui64 size, must be 8");
     return 0;
+  }
+  g_snprintf(cfg_file, 255, "%s/xrdp.ini", XRDP_CFG_PATH);
+
+  /* starting logging subsystem */
+  error = log_start(cfg_file,"XRDP");
+
+  if (error != LOG_STARTUP_OK)
+  {
+    char buf[256] ;  
+    switch (error)
+    {
+      case LOG_ERROR_MALLOC:
+        g_printf("error on malloc. cannot start logging. quitting.\n");
+        break;
+      case LOG_ERROR_FILE_OPEN:
+        g_printf("error opening log file [%s]. quitting.\n", getLogFile(buf,255));
+        break;
+    }
+    g_exit(1);
   }
 #if defined(_WIN32)
   run_as_service = 1;
