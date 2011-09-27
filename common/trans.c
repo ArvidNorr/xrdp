@@ -27,6 +27,7 @@
 #include "trans.h"
 #include "arch.h"
 #include "parse.h"
+#include "log.h"
 
 /*****************************************************************************/
 struct trans* APP_CC
@@ -126,6 +127,7 @@ trans_check_wait_objs(struct trans* self)
       {
         if (self->trans_conn_in != 0) /* is function assigned */
         {
+          log_message(LOG_LEVEL_DEBUG,"Accepted new connection in trans_check_wait_objs()"); 
           in_trans = trans_create(self->mode, self->in_s->size,
                                   self->out_s->size);
           in_trans->sck = in_sck;

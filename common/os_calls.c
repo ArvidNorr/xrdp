@@ -64,6 +64,7 @@
 
 #include "os_calls.h"
 #include "arch.h"
+#include <linux/unistd.h>
 
 /* for clearenv() */
 #if defined(_WIN32)
@@ -2041,6 +2042,23 @@ g_getpid(void)
 #else
   return (int)getpid();
 #endif
+}
+
+/**
+ * Returns the current thread ID
+ * @return 
+ */
+int APP_CC
+g_gettid(void)
+{
+#if defined(_WIN32)
+  return (int)GetCurrentThreadId();
+#else
+  /* This is Linux specific way of getting the thread id. 
+   * Functions not part of GLIB so therefore this syscall*/
+  return (int)syscall(__NR_gettid);
+#endif
+    
 }
 
 /*****************************************************************************/

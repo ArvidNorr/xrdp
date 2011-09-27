@@ -54,7 +54,7 @@ sesman_main_loop(void)
   tbus robjs[8];
 
   /*main program loop*/
-  log_message(LOG_LEVEL_INFO, "listening...");
+  log_message(LOG_LEVEL_DEBUG, "Sesman listening loop started...");
   g_sck = g_tcp_socket();
   g_tcp_set_non_blocking(g_sck);
   error = scp_tcp_bind(g_sck, g_cfg->listen_address, g_cfg->listen_port);
@@ -103,7 +103,7 @@ sesman_main_loop(void)
           else
           {
             /* we've got a connection, so we pass it to scp code */
-            LOG_DBG("new connection");
+            log_message(LOG_LEVEL_DEBUG, "Sesman; new connection established");
             thread_scp_start(in_sck);
             /* todo, do we have to wait here ? */
           }

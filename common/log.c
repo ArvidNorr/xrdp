@@ -554,7 +554,7 @@ const char* msg, ...)
   {
     /* log to syslog*/
     /* %s fix compiler warning 'not a string literal' */      
-    syslog(internal_log_xrdp2syslog(lvl), "%s",(char *)(buff + 20));
+    syslog(internal_log_xrdp2syslog(lvl), "(%d)(%d)%s",g_getpid(),g_gettid(),(char *)(buff + 20));
   }
 
   if (lvl <= staticLogConfig->log_level)
