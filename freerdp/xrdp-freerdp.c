@@ -189,7 +189,7 @@ lib_mod_end(struct mod* mod)
 static int DEFAULT_CC
 lib_mod_set_param(struct mod* mod, char* name, char* value)
 {
-  g_writeln("lib_mod_set_param: name [%s] value [%s]", name, value);
+  //g_writeln("lib_mod_set_param: name [%s] value [%s]", name, value);
   log_message(LOG_LEVEL_DEBUG,"lib_mod_set_param: name [%s] value [%s]", name, value);
   if (g_strcmp(name, "hostname") == 0)
   {
@@ -294,7 +294,7 @@ static void DEFAULT_CC
 ui_desktop_save(rdpInst* inst, int offset, int x, int y,
                 int cx, int cy)
 {
-  g_writeln("ui_desktop_save:");
+  log_message(LOG_LEVEL_DEBUG,"ui_desktop_save");   
 }
 
 /******************************************************************************/
@@ -302,7 +302,7 @@ static void DEFAULT_CC
 ui_desktop_restore(rdpInst* inst, int offset, int x, int y,
   int cx, int cy)
 {
-  g_writeln("ui_desktop_restore:");
+  log_message(LOG_LEVEL_DEBUG,"Desktop restore ");     
 }
 
 /******************************************************************************/
@@ -898,6 +898,7 @@ ui_channel_data(rdpInst* inst, int chan_id, char* data, int data_size,
 static RD_BOOL DEFAULT_CC
 ui_authenticate(rdpInst * inst)
 {
+  log_message(LOG_LEVEL_DEBUG,"authenticate - will return 1");
   return 1;
 }
 
@@ -913,6 +914,7 @@ static RD_BOOL DEFAULT_CC
 ui_check_certificate(rdpInst * inst, const char * fingerprint,
                      const char * subject, const char * issuer, RD_BOOL verified)
 {
+  log_message(LOG_LEVEL_DEBUG,"Checkcertificate - will return 1");
   return 1;
 }
 

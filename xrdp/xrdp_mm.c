@@ -1223,6 +1223,7 @@ int DEFAULT_CC
 server_msg(struct xrdp_mod* mod, char* msg, int code)
 {
   struct xrdp_wm* wm;
+  log_message(LOG_LEVEL_DEBUG,"server_msg:%s",msg);
 
   if (code == 1)
   {
