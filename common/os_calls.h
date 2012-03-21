@@ -104,7 +104,7 @@ g_tcp_can_recv(int sck, int millis);
 int APP_CC
 g_tcp_select(int sck1, int sck2);
 void APP_CC
-g_write_ip_address(int rcv_sck, char* ip_address);
+g_write_ip_address(int rcv_sck, char* ip_address,int ipAddressBufLen);
 void APP_CC
 g_sleep(int msecs);
 tbus APP_CC
@@ -248,6 +248,14 @@ int APP_CC
 g_exit(int exit_code);
 int APP_CC
 g_getpid(void);
+
+/**
+ * Returns the current thread ID
+ * @return 
+ */
+int APP_CC
+g_gettid(void);
+
 int APP_CC
 g_sigterm(int pid);
 int APP_CC

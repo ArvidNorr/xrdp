@@ -64,6 +64,8 @@
 
 #include "os_calls.h"
 #include "arch.h"
+#include <linux/unistd.h>
+#include "log.h"
 
 /* for clearenv() */
 #if defined(_WIN32)
@@ -411,10 +413,14 @@ g_tcp_local_socket(void)
 void APP_CC
 g_tcp_close(int sck)
 {
+  char ip[256];
   if (sck == 0)
   {
     return;
   }
+  g_write_ip_address(sck,ip,256);
+  log_message(LOG_LEVEL_INFO,"An established connection closed to endpoint: %s"
+          ,ip);
   shutdown(sck, 2);
 #if defined(_WIN32)
   closesocket(sck);
@@ -549,7 +555,9 @@ g_tcp_listen(int sck)
 int APP_CC
 g_tcp_accept(int sck)
 {
+  int ret;
   struct sockaddr_in s;
+  char iPAddr[256];
 #if defined(_WIN32)
   signed int i;
 #else
@@ -558,12 +566,19 @@ g_tcp_accept(int sck)
 
   i = sizeof(struct sockaddr_in);
   memset(&s, 0, i);
-  return accept(sck, (struct sockaddr*)&s, &i);
+  ret = accept(sck, (struct sockaddr*)&s, &i);
+  if(ret>0)
+  {
+    snprintf(iPAddr,256,"A connection received from: %s port %d",
+            inet_ntoa(s.sin_addr),ntohs(s.sin_port));
+    log_message(LOG_LEVEL_INFO,iPAddr);      
+  }
+  return ret;
 }
 
 /*****************************************************************************/
 void APP_CC
-g_write_ip_address(int rcv_sck, char* ip_address)
+g_write_ip_address(int rcv_sck, char* ip_address, int ipAddressBufLen)
 {
   struct sockaddr_in s;
   struct in_addr in;
@@ -581,13 +596,13 @@ g_write_ip_address(int rcv_sck, char* ip_address)
   
   if (ip_port != 0)
   {
-    sprintf(ip_address, "%s:%d - socket: %d", inet_ntoa(in), ip_port, rcv_sck);
+    snprintf(ip_address, ipAddressBufLen,"%s:%d - socket: %d", inet_ntoa(in), 
+            ip_port, rcv_sck);
   }
   else
   {
-    sprintf(ip_address, "NULL:NULL - socket: %d", rcv_sck);
-  }
-
+    snprintf(ip_address, ipAddressBufLen,"NULL:NULL - socket: %d", rcv_sck);
+  }  
 }
 
 /*****************************************************************************/
@@ -2160,6 +2175,23 @@ g_getpid(void)
 #else
   return (int)getpid();
 #endif
+}
+
+/**
+ * Returns the current thread ID
+ * @return 
+ */
+int APP_CC
+g_gettid(void)
+{
+#if defined(_WIN32)
+  return (int)GetCurrentThreadId();
+#else
+  /* This is Linux specific way of getting the thread id. 
+   * Functions not part of GLIB so therefore this syscall*/
+  return (int)syscall(__NR_gettid);
+#endif
+    
 }
 
 /*****************************************************************************/

@@ -22,6 +22,7 @@
 
 #include "xrdp-freerdp.h"
 #include "xrdp-color.h"
+#include "log.h"
 
 #define GET_MOD(_inst) ((struct mod*)((_inst)->param1))
 #define SET_MOD(_inst, _mod) ((_inst)->param1) = _mod
@@ -139,6 +140,7 @@ lib_mod_event(struct mod* mod, int msg, long param1, long param2,
                                       param1, param2);
       break;
     case 107:
+      mod->inst->rdp_send_input_mouse(mod->inst,PTRFLAGS_WHEEL | 0x0078 , 0, 0); 
       //mod->inst->rdp_send_input_mouse(mod->inst,
       //                                MOUSE_FLAG_BUTTON4, param1, param2);
       break;
@@ -148,6 +150,7 @@ lib_mod_event(struct mod* mod, int msg, long param1, long param2,
       //                                param1, param2);
       break;
     case 109:
+      mod->inst->rdp_send_input_mouse(mod->inst,PTRFLAGS_WHEEL | PTRFLAGS_WHEEL_NEGATIVE | 0x0088 , 0, 0);  
       //mod->inst->rdp_send_input_mouse(mod->inst,
       //                                MOUSE_FLAG_BUTTON5, param1, param2);
       break;
@@ -186,7 +189,8 @@ lib_mod_end(struct mod* mod)
 static int DEFAULT_CC
 lib_mod_set_param(struct mod* mod, char* name, char* value)
 {
-  g_writeln("lib_mod_set_param: name [%s] value [%s]", name, value);
+  //g_writeln("lib_mod_set_param: name [%s] value [%s]", name, value);
+  log_message(LOG_LEVEL_DEBUG,"lib_mod_set_param: name [%s] value [%s]", name, value);
   if (g_strcmp(name, "hostname") == 0)
   {
     g_strncpy(mod->settings->hostname, value, sizeof(mod->settings->hostname));
@@ -290,7 +294,7 @@ static void DEFAULT_CC
 ui_desktop_save(rdpInst* inst, int offset, int x, int y,
                 int cx, int cy)
 {
-  g_writeln("ui_desktop_save:");
+  log_message(LOG_LEVEL_DEBUG,"ui_desktop_save");   
 }
 
 /******************************************************************************/
@@ -298,7 +302,7 @@ static void DEFAULT_CC
 ui_desktop_restore(rdpInst* inst, int offset, int x, int y,
   int cx, int cy)
 {
-  g_writeln("ui_desktop_restore:");
+  log_message(LOG_LEVEL_DEBUG,"Desktop restore ");     
 }
 
 /******************************************************************************/
@@ -894,6 +898,7 @@ ui_channel_data(rdpInst* inst, int chan_id, char* data, int data_size,
 static RD_BOOL DEFAULT_CC
 ui_authenticate(rdpInst * inst)
 {
+  log_message(LOG_LEVEL_DEBUG,"authenticate - will return 1");
   return 1;
 }
 
@@ -909,6 +914,7 @@ static RD_BOOL DEFAULT_CC
 ui_check_certificate(rdpInst * inst, const char * fingerprint,
                      const char * subject, const char * issuer, RD_BOOL verified)
 {
+  log_message(LOG_LEVEL_DEBUG,"Checkcertificate - will return 1");
   return 1;
 }
 
