@@ -64,6 +64,7 @@
 
 #include "os_calls.h"
 #include "arch.h"
+#include "log.h";
 
 /* for clearenv() */
 #if defined(_WIN32)
@@ -461,10 +462,13 @@ g_tcp_local_socket(void)
 void APP_CC
 g_tcp_close(int sck)
 {
+  char ip[256] ;
   if (sck == 0)
   {
     return;
   }
+  g_write_ip_address(sck,ip,256);
+  log_message(LOG_LEVEL_INFO,"An established connection closed to endpoint: %s", ip);
 #if defined(_WIN32)
   closesocket(sck);
 #else
@@ -598,6 +602,8 @@ g_tcp_listen(int sck)
 int APP_CC
 g_tcp_accept(int sck)
 {
+  int ret ;
+  char ipAddr[256] ;
   struct sockaddr_in s;
 #if defined(_WIN32)
   signed int i;
@@ -607,7 +613,14 @@ g_tcp_accept(int sck)
 
   i = sizeof(struct sockaddr_in);
   memset(&s, 0, i);
-  return accept(sck, (struct sockaddr*)&s, &i);
+  ret = accept(sck, (struct sockaddr*)&s, &i);
+  if(ret>0)
+  {
+      snprintf(ipAddr,256,"A connection received from: %s port %d"
+      ,inet_ntoa(s.sin_addr),ntohs(s.sin_port));
+      log_message(LOG_LEVEL_INFO,ipAddr);
+  }
+  return ret ;
 }
 
 /*****************************************************************************/

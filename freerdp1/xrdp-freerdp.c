@@ -19,6 +19,7 @@
 
 #include "xrdp-freerdp.h"
 #include "xrdp-color.h"
+#include "log.h"
 
 #define LOG_LEVEL 1
 #define LLOG(_level, _args) \
@@ -61,15 +62,20 @@ static int DEFAULT_CC
 lxrdp_connect(struct mod* mod)
 {
   boolean ok;
-
-  LLOGLN(10, ("lxrdp_connect:"));
-
+  char msg[256];
+  rdpSettings* settings;
+  settings = mod->inst->settings;
+  if(settings!=NULL)
+  {
+    snprintf(msg,256,"We now try to connect to :%s port : %d with RDP",settings->hostname,settings->port);
+    log_message(LOG_LEVEL_INFO,msg) ;
+  }
   ok = freerdp_connect(mod->inst);
   LLOGLN(0, ("lxrdp_connect: freerdp_connect returned %d", ok));
 
   if (!ok)
   {
-    LLOGLN(0, ("Failure to connect"));
+   log_message(LOG_LEVEL_INFO,"Failure to connect");
 #ifdef ERRORSTART
     if (connectErrorCode != 0)
     {
@@ -118,10 +124,15 @@ lxrdp_connect(struct mod* mod)
             break;
         }
       }
+      log_message(LOG_LEVEL_INFO,buf);
       mod->server_msg(mod, buf, 0);
     }
 #endif
     return 1;
+  }
+  else
+  {
+      log_message(LOG_LEVEL_INFO,"success connecting with RDP");
   }
   return 0;
 }
@@ -215,7 +226,7 @@ lxrdp_event(struct mod* mod, int msg, long param1, long param2,
       break;
     case 200:
       /* Currently there are no (?) invalidate API in freeRDP that can receive this request*/	
-      LLOGLN(0, ("Invalidate request sent from client - Ignored"));	
+      log_message(LOG_LEVEL_DEBUG,"Invalidate request sent from client - Ignored");	
       break ;
     case 0x5555:
       chanid = LOWORD(param1);
@@ -541,7 +552,7 @@ lfreerdp_pat_blt(rdpContext* context, PATBLT_ORDER* patblt)
 
   server_bpp = mod->inst->settings->color_depth;
   client_bpp = mod->bpp;
-  LLOGLN(0, ("lfreerdp_pat_blt: bpp %d %d", server_bpp, client_bpp));
+  LLOGLN(10, ("lfreerdp_pat_blt: bpp %d %d", server_bpp, client_bpp));
 
   fgcolor = convert_color(server_bpp, client_bpp,
                           patblt->foreColor, mod->colormap);
@@ -1026,12 +1037,12 @@ lfreerdp_pointer_new(rdpContext* context,
   tui8* src;
 
   mod = ((struct mod_context*)context)->modi;
-  LLOGLN(0, ("lfreerdp_pointer_new:"));
-  LLOGLN(0, ("  bpp %d", pointer_new->xorBpp));
-  LLOGLN(0, ("  width %d height %d", pointer_new->colorPtrAttr.width,
+  LLOGLN(10, ("lfreerdp_pointer_new:"));
+  LLOGLN(10, ("  bpp %d", pointer_new->xorBpp));
+  LLOGLN(10, ("  width %d height %d", pointer_new->colorPtrAttr.width,
       pointer_new->colorPtrAttr.height));
 
-  LLOGLN(0, ("  lengthXorMask %d lengthAndMask %d",
+  LLOGLN(10, ("  lengthXorMask %d lengthAndMask %d",
       pointer_new->colorPtrAttr.lengthXorMask,
       pointer_new->colorPtrAttr.lengthAndMask));
 
@@ -1065,7 +1076,7 @@ lfreerdp_pointer_new(rdpContext* context,
   }
   else
   {
-    LLOGLN(0, ("lfreerdp_pointer_new: error bpp %d width %d height %d",
+    LLOGLN(2, ("lfreerdp_pointer_new: error bpp %d width %d height %d",
            pointer_new->xorBpp, pointer_new->colorPtrAttr.width,
            pointer_new->colorPtrAttr.height));
   }
@@ -1329,7 +1340,7 @@ mod_init(void)
 int EXPORT_CC
 mod_exit(struct mod* mod)
 {
-  LLOGLN(0, ("mod_exit:"));
+  log_message(LOG_LEVEL_DEBUG,"mod_exit:");
   if (mod == 0)
   {
     return 0;

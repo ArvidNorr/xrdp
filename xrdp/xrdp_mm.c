@@ -21,6 +21,7 @@
 */
 
 #include "xrdp.h"
+#include "log.h"
 #define ACCESS
 
 /*****************************************************************************/
@@ -63,7 +64,7 @@ xrdp_mm_sync_load(long param1, long param2)
 static void APP_CC
 xrdp_mm_module_cleanup(struct xrdp_mm* self)
 {
-  g_writeln("xrdp_mm_module_cleanup");
+  log_message(LOG_LEVEL_DEBUG,"xrdp_mm_module_cleanup");
   if (self->mod != 0)
   {
     if (self->mod_exit != 0)
@@ -271,6 +272,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
     g_snprintf(text, 255, "no library name specified in xrdp.ini, please add "
                           "lib=libxrdp-vnc.so or similar");
     xrdp_wm_log_msg(self->wm, text);
+    log_message(LOG_LEVEL_ERROR,text);
 
     return 1;
   }
@@ -279,6 +281,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
     g_snprintf(text, 255, "empty library name specified in xrdp.ini, please "
                           "add lib=libxrdp-vnc.so or similar");
     xrdp_wm_log_msg(self->wm, text);
+    log_message(LOG_LEVEL_ERROR,text);
 
     return 1;
   }
@@ -298,6 +301,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         g_snprintf(text, 255, "error finding proc mod_init in %s, not a valid "
                               "xrdp backend", lib);
         xrdp_wm_log_msg(self->wm, text);
+	log_message(LOG_LEVEL_ERROR,text);
       }
       self->mod_init = (struct xrdp_mod* (*)(void))func;
       func = g_get_proc_address(self->mod_handle, "mod_exit");
@@ -310,6 +314,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         g_snprintf(text, 255, "error finding proc mod_exit in %s, not a valid "
                               "xrdp backend", lib);	
         xrdp_wm_log_msg(self->wm, text);
+	log_message(LOG_LEVEL_ERROR,text);
       }
       self->mod_exit = (int (*)(struct xrdp_mod*))func;
       if ((self->mod_init != 0) && (self->mod_exit != 0))
@@ -319,9 +324,10 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         {
           g_writeln("loaded module '%s' ok, interface size %d, version %d", lib,
                     self->mod->size, self->mod->version);
+	  log_message(LOG_LEVEL_DEBUG,text);
         }
-      }else{
-	  g_writeln("no mod_init or mod_exit address found") ;
+      }else{	  
+	  log_message(LOG_LEVEL_ERROR,"no mod_init or mod_exit address found");
       }
     }
     else
@@ -329,6 +335,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
       g_snprintf(text, 255, "error loading %s specified in xrdp.ini, please "
                             "add a valid entry like lib=libxrdp-vnc.so or similar", lib);
       xrdp_wm_log_msg(self->wm, text);
+      log_message(LOG_LEVEL_ERROR,text);
       return 1 ;
     }
     if (self->mod != 0)
@@ -631,8 +638,8 @@ xrdp_mm_chan_process_msg(struct xrdp_mm* self, struct trans* trans,
       case 8: /* channel data */
         rv = xrdp_mm_trans_process_channel_data(self, trans);
         break;
-      default:
-        g_writeln("xrdp_mm_chan_process_msg: unknown id %d", id);
+      default:       
+	log_message(LOG_LEVEL_ERROR,"xrdp_mm_chan_process_msg: unknown id %d", id);
         break;
     }
     if (rv != 0)
@@ -728,24 +735,24 @@ xrdp_mm_connect_chansrv(struct xrdp_mm* self, char* ip, char* port)
       break;
     }
     g_sleep(1000);
-    g_writeln("xrdp_mm_connect_chansrv: connect failed "
+    log_message(LOG_LEVEL_ERROR,"xrdp_mm_connect_chansrv: connect failed "
               "trying again...");
   }
   if (!(self->chan_trans_up))
   {
-    g_writeln("xrdp_mm_connect_chansrv: error in trans_connect "
+    log_message(LOG_LEVEL_ERROR,"xrdp_mm_connect_chansrv: error in trans_connect "
               "chan");
   }
   if (self->chan_trans_up)
   {
     if (xrdp_mm_chan_send_init(self) != 0)
     {
-      g_writeln("xrdp_mm_connect_chansrv: error in "
+      log_message(LOG_LEVEL_ERROR,"xrdp_mm_connect_chansrv: error in "
                 "xrdp_mm_chan_send_init");
     }
     else
     {
-      g_writeln("xrdp_mm_connect_chansrv: chansrv connect successful");
+      log_message(LOG_LEVEL_INFO,"xrdp_mm_connect_chansrv: chansrv connect successful");
     }
   }
   return 0;
@@ -784,6 +791,7 @@ xrdp_mm_process_login_response(struct xrdp_mm* self, struct stream* s)
     g_snprintf(text, 255, "xrdp_mm_process_login_response: login successful "
                           "for display %d", display);
     xrdp_wm_log_msg(self->wm, text);
+    log_message(LOG_LEVEL_INFO,text);
     if (xrdp_mm_setup_mod1(self) == 0)
     {
       if (xrdp_mm_setup_mod2(self) == 0)
@@ -807,6 +815,8 @@ xrdp_mm_process_login_response(struct xrdp_mm* self, struct stream* s)
   else
   {
     xrdp_wm_log_msg(self->wm, "xrdp_mm_process_login_response: "
+                              "login failed");
+    log_message(LOG_LEVEL_INFO,"xrdp_mm_process_login_response: "
                               "login failed");
   }
   cleanup_sesman_connection(self); 
@@ -893,7 +903,8 @@ xrdp_mm_process_channel_data(struct xrdp_mm* self, tbus param1, tbus param2,
       total_length = param4;
       if (total_length < length)
       {
-        g_writeln("WARNING in xrdp_mm_process_channel_data(): total_len < length");
+        log_message(LOG_LEVEL_DEBUG,"WARNING in xrdp_mm_process_channel_data(): total_len < length");
+	
         total_length = length;
       }
       out_uint32_le(s, 0); /* version */
@@ -949,7 +960,7 @@ xrdp_mm_sesman_data_in(struct trans* trans)
         break;
       default:
         xrdp_wm_log_msg(self->wm, "An undefined reply code was received from sesman");  
-        g_writeln("Fatal xrdp_mm_sesman_data_in: unknown cmd code %d", code);
+       log_message(LOG_LEVEL_ERROR,"Fatal xrdp_mm_sesman_data_in: unknown cmd code %d", code);
         cleanup_sesman_connection(self); 
         break;
     }
@@ -978,7 +989,7 @@ int access_control(char *username, char *password, char *srv){
     reply = g_tcp_connect(socket, srv, "3350");
     if (reply == 0)
     {
-      g_writeln("Connected to sesman user %s: password %s :srv %s",username, password, srv);
+      /* g_writeln("Connected to sesman user %s: password %s :srv %s",username, password, srv); */
       make_stream(in_s);
       init_stream(in_s, 500);
       make_stream(out_s);
@@ -1016,7 +1027,7 @@ int access_control(char *username, char *password, char *srv){
             in_uint16_be(in_s, dummy);
             if(code!=4)
             {
-              g_writeln("Return cmd code is corrupt");
+              log_message(LOG_LEVEL_ERROR,"Return cmd code is corrupt");
             }
             else
             {
@@ -1026,29 +1037,29 @@ int access_control(char *username, char *password, char *srv){
           }
           else
           {
-            g_writeln("corrupt reply size or version from sesman: %d",size);
+            log_message(LOG_LEVEL_ERROR,"corrupt reply size or version from sesman: %d",size);
           }
         }
         else
         {
-          g_writeln("no data received from sesman");
+          log_message(LOG_LEVEL_ERROR,"no data received from sesman");
         }
       }
       else
       {
-        g_writeln("no success sending to sesman");
+        log_message(LOG_LEVEL_ERROR,"no success sending to sesman");
       }
       free_stream(in_s);
       g_tcp_close(socket);
     }
     else
     {
-      g_writeln("failure connecting to socket sesman");
+      log_message(LOG_LEVEL_ERROR,"failure connecting to socket sesman");
     }        
   }
   else
   {
-    g_writeln("failure creating socket");
+    log_message(LOG_LEVEL_ERROR,"failure creating socket");
   }
   //g_free(port);
   return rec;
@@ -1161,6 +1172,7 @@ xrdp_mm_connect(struct xrdp_mm* self)
     else
     {
       g_sprintf(replytxt,"Reply from access control undefined");
+      log_message(LOG_LEVEL_ERROR,"Reply from access control undefined");
     }
     xrdp_wm_log_msg(self->wm,replytxt);
     if(reply!=0)
@@ -1207,6 +1219,7 @@ xrdp_mm_connect(struct xrdp_mm* self)
       g_snprintf(errstr, 255, "Failure to connect to sesman: %s port: %s",
                    ip, port);	
       xrdp_wm_log_msg(self->wm, errstr);
+      log_message(LOG_LEVEL_ERROR,errstr);
       trans_delete(self->sesman_trans);
       self->sesman_trans = 0;
       self->sesman_trans_up = 0;
@@ -1227,10 +1240,11 @@ xrdp_mm_connect(struct xrdp_mm* self)
         /* connect error */
         g_snprintf(errstr, 255, "Failure to connect to: %s",ip);
         xrdp_wm_log_msg(self->wm, errstr);
+	log_message(LOG_LEVEL_ERROR,errstr);
         rv = 1 ; /* failure */
       }
     }else{
-	g_writeln("Failure setting up module");
+	log_message(LOG_LEVEL_ERROR,"Failure setting up module");
     }
     if (self->wm->login_mode != 10)
     {
@@ -1246,7 +1260,7 @@ xrdp_mm_connect(struct xrdp_mm* self)
     /* if sesman controlled, this will connect later */
     xrdp_mm_connect_chansrv(self, "", chansrvport);
   }
-  g_writeln("returnvalue from xrdp_mm_connect %d",rv);
+  log_message(LOG_LEVEL_DEBUG,"returnvalue from xrdp_mm_connect %d",rv);
 
   return rv;
 }
@@ -1813,18 +1827,18 @@ void init_channel_allowed(struct xrdp_wm* wm)
       if(error==0){
         /* examples of channel names: rdpdr ;rdpsnd ; drdynvc ; cliprdr */
         if(is_name_in_lists(channelname,names,values)){  
-          g_writeln("The following channel is allowed: %s",channelname) ;
+          log_message(LOG_LEVEL_INFO,"The following channel is allowed: %s",channelname) ;
           wm->allowedchannels[allowindex] = index ;
           allowindex ++ ;
           if(allowindex>=MAX_NR_CHANNELS)
           {
-            g_writeln("Programming error in is_channel_allowed");
+            log_message(LOG_LEVEL_ALWAYS,"Programming error in is_channel_allowed");
             error = 1 ; /* end loop */
           }
         }
         else
         {
-          g_writeln("The following channel is not allowed: %s",channelname) ;
+          log_message(LOG_LEVEL_INFO,"The following channel is not allowed: %s",channelname) ;
         }
         index ++ ;
       }
@@ -1832,7 +1846,7 @@ void init_channel_allowed(struct xrdp_wm* wm)
   }
   else
   {
-    g_writeln("Error reading channel section in inifile") ;
+    log_message(LOG_LEVEL_ERROR,"Error reading channel section in inifile") ;
   }   
   list_delete(names);
   list_delete(values);       
