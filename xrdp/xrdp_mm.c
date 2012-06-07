@@ -211,7 +211,8 @@ xrdp_mm_send_login(struct xrdp_mm* self)
 
   rv = trans_force_write(self->sesman_trans);
 
-  if (rv != 0) {
+  if (rv != 0)
+  {
     xrdp_wm_log_msg(self->wm, "xrdp_mm_send_login: xrdp_mm_send_login failed");
   }
 
@@ -301,7 +302,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         g_snprintf(text, 255, "error finding proc mod_init in %s, not a valid "
                               "xrdp backend", lib);
         xrdp_wm_log_msg(self->wm, text);
-	log_message(LOG_LEVEL_ERROR,text);
+        log_message(LOG_LEVEL_ERROR,text);
       }
       self->mod_init = (struct xrdp_mod* (*)(void))func;
       func = g_get_proc_address(self->mod_handle, "mod_exit");
@@ -314,7 +315,7 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         g_snprintf(text, 255, "error finding proc mod_exit in %s, not a valid "
                               "xrdp backend", lib);	
         xrdp_wm_log_msg(self->wm, text);
-	log_message(LOG_LEVEL_ERROR,text);
+        log_message(LOG_LEVEL_ERROR,text);
       }
       self->mod_exit = (int (*)(struct xrdp_mod*))func;
       if ((self->mod_init != 0) && (self->mod_exit != 0))
@@ -322,12 +323,14 @@ xrdp_mm_setup_mod1(struct xrdp_mm* self)
         self->mod = self->mod_init();
         if (self->mod != 0)
         {
-          g_writeln("loaded module '%s' ok, interface size %d, version %d", lib,
+          g_snprintf(text, 255,"loaded module '%s' ok, interface size %d, version %d", lib,
                     self->mod->size, self->mod->version);
-	  log_message(LOG_LEVEL_DEBUG,text);
+          log_message(LOG_LEVEL_DEBUG,text);
         }
-      }else{	  
-	  log_message(LOG_LEVEL_ERROR,"no mod_init or mod_exit address found");
+      }
+      else
+      {
+        log_message(LOG_LEVEL_ERROR,"no mod_init or mod_exit address found");
       }
     }
     else
@@ -639,7 +642,7 @@ xrdp_mm_chan_process_msg(struct xrdp_mm* self, struct trans* trans,
         rv = xrdp_mm_trans_process_channel_data(self, trans);
         break;
       default:       
-	log_message(LOG_LEVEL_ERROR,"xrdp_mm_chan_process_msg: unknown id %d", id);
+        log_message(LOG_LEVEL_ERROR,"xrdp_mm_chan_process_msg: unknown id %d", id);
         break;
     }
     if (rv != 0)
@@ -903,8 +906,8 @@ xrdp_mm_process_channel_data(struct xrdp_mm* self, tbus param1, tbus param2,
       total_length = param4;
       if (total_length < length)
       {
-        log_message(LOG_LEVEL_DEBUG,"WARNING in xrdp_mm_process_channel_data(): total_len < length");
-	
+        log_message(LOG_LEVEL_DEBUG,"WARNING in xrdp_mm_process_channel_data():"
+          " total_len < length");
         total_length = length;
       }
       out_uint32_le(s, 0); /* version */
@@ -960,7 +963,7 @@ xrdp_mm_sesman_data_in(struct trans* trans)
         break;
       default:
         xrdp_wm_log_msg(self->wm, "An undefined reply code was received from sesman");  
-       log_message(LOG_LEVEL_ERROR,"Fatal xrdp_mm_sesman_data_in: unknown cmd code %d", code);
+        log_message(LOG_LEVEL_ERROR,"Fatal xrdp_mm_sesman_data_in: unknown cmd code %d", code);
         cleanup_sesman_connection(self); 
         break;
     }
@@ -1032,7 +1035,7 @@ int access_control(char *username, char *password, char *srv){
             else
             {
               rec = ok; /* here we read the reply from the access control */
-			/* g_writeln("Valid reply received"); */
+              /* g_writeln("Valid reply received"); */
             }
           }
           else
