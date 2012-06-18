@@ -21,8 +21,9 @@
 */
 
 #include "xrdp.h"
-#define ACCESS
 #include "log.h"
+
+#define ACCESS
 
 /*****************************************************************************/
 /* all login help screen events go here */
