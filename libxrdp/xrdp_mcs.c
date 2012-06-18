@@ -21,6 +21,7 @@
 */
 
 #include "libxrdp.h"
+#include "log.h"
 
 /*****************************************************************************/
 struct xrdp_mcs* APP_CC
@@ -135,23 +136,24 @@ xrdp_mcs_recv(struct xrdp_mcs* self, struct stream* s, int* chan)
     /* this is channels getting added from the client */
     if (appid == MCS_CJRQ)
     {
-      g_writeln("channel join request received");	
+      log_message(LOG_LEVEL_DEBUG,"MCS_CJRQ - channel join request received");	
       in_uint16_be(s, userid);
       in_uint16_be(s, chanid);
       DEBUG(("xrdp_mcs_recv  adding channel %4.4x", chanid));
       if(xrdp_mcs_send_cjcf(self, userid, chanid)!=0)
       {
-        g_writeln("Non handled error from xrdp_mcs_send_cjcf") ;
+        log_message(LOG_LEVEL_ERROR,"Non handled error from xrdp_mcs_send_cjcf") ;
       }
       continue;
     }
     if(appid==MCS_SDRQ || appid==MCS_SDIN)
     {
       break ;
+
     }
     else
     {
-      g_writeln("Recieved an unhandled appid:%d",appid);
+      log_message(LOG_LEVEL_DEBUG,"Recieved an unhandled appid:%d",appid);
     }
     break;
   }

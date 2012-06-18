@@ -22,6 +22,7 @@
 
 #include "xrdp.h"
 #include "log.h"
+#define ACCESS
 
 /*****************************************************************************/
 /* all login help screen events go here */
@@ -262,7 +263,7 @@ xrdp_wm_show_edits(struct xrdp_wm* self, struct xrdp_bitmap* combo)
       if (g_strncmp("ask", value, 3) == 0)
       {
         /* label */
-        b = xrdp_bitmap_create(70, DEFAULT_EDIT_H, self->screen->bpp,
+        b = xrdp_bitmap_create(95, DEFAULT_EDIT_H, self->screen->bpp,
                                WND_TYPE_LABEL, self);
         list_insert_item(self->login_window->child_list, insert_index,
                               (long)b);
@@ -303,7 +304,11 @@ xrdp_wm_show_edits(struct xrdp_wm* self, struct xrdp_bitmap* combo)
             username_set = 1;
           }
         }
+#ifdef ACCESS         
+        if ((g_strncmp(name, "password", 255) == 0) || (g_strncmp(name, "pampassword", 255) == 0))
+#else
         if (g_strncmp(name, "password", 255) == 0)
+#endif        
         {
           b->password_char = '*';
           if (username_set)
@@ -411,7 +416,9 @@ xrdp_wm_login_fill_in_combo(struct xrdp_wm* self, struct xrdp_bitmap* b)
   {
     p = (char*)list_get_item(sections, i);
     file_read_section(fd, p, section_names, section_values);
-    if ((g_strncmp(p, "globals", 255) == 0) || (g_strncmp(p,"Logging",255) == 0))
+    if ((g_strncmp(p, "globals", 255) == 0) 
+       ||(g_strncmp(p, "channels", 255) == 0)
+       ||(g_strncmp(p, "Logging", 255) == 0))
     {
     }
     else

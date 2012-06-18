@@ -21,6 +21,7 @@
 */
 
 #include "xrdp.h"
+#include "log.h"
 
 /* 'g_process' is protected by the semaphore 'g_process_sem'.  One thread sets
    g_process and waits for the other to process it */
@@ -60,7 +61,7 @@ xrdp_listen_create(void)
   self->listen_trans = trans_create(TRANS_MODE_TCP, 16, 16);
   if (self->listen_trans == 0)
   {
-    g_writeln("xrdp_listen_create: trans_create failed");
+    log_message(LOG_LEVEL_ERROR,"xrdp_listen_create: trans_create failed");
   }
   return self;
 }
@@ -317,7 +318,7 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
                                    &tcp_nodelay, &tcp_keepalive,
                                    self->startup_params) != 0)
   {
-    g_writeln("xrdp_listen_main_loop: xrdp_listen_get_port failed");
+    log_message(LOG_LEVEL_ERROR,"xrdp_listen_main_loop: xrdp_listen_get_port failed");
     self->status = -1;
     return 1;
   }
@@ -329,14 +330,14 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
     {
       if(g_tcp_set_no_delay(self->listen_trans->sck))
       {
-        g_writeln("Error setting tcp_nodelay");
+        log_message(LOG_LEVEL_ERROR,"Error setting tcp_nodelay");
       }
     }
     if(tcp_keepalive)
     {
       if(g_tcp_set_keepalive(self->listen_trans->sck))
       {
-        g_writeln("Error setting tcp_keepalive");
+        log_message(LOG_LEVEL_ERROR,"Error setting tcp_keepalive");
       }
     }
     self->listen_trans->trans_conn_in = xrdp_listen_conn_in;
@@ -355,7 +356,7 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
       timeout = -1;
       if (trans_get_wait_objs(self->listen_trans, robjs, &robjs_count) != 0)
       {
-	g_writeln("Listening socket is in wrong state we terminate listener") ;
+	log_message(LOG_LEVEL_INFO,"Listening socket is in wrong state we terminate listener") ;
         break;
       }
       /* wait - timeout -1 means wait indefinitely*/
@@ -421,8 +422,8 @@ xrdp_listen_main_loop(struct xrdp_listen* self)
   }
   else
   {
-    g_writeln("xrdp_listen_main_loop: listen error, possible port "
-              "already in use");
+    log_message(LOG_LEVEL_ERROR,"xrdp_listen_main_loop: listen error,"
+               " possible port already in use");
   }
   self->status = -1;
   return 0;
