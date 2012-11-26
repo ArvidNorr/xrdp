@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "The XRDP will be unistalled"
+#echo "startscript will be removed"
+#update-rc.d -f xrdp remove

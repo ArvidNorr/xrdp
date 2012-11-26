@@ -1,0 +1,9 @@
+Package: xrdp
+Version: 0.7
+Section: base 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: 
+Maintainer: none <none@gmail.com>
+Description: Install package for XRDP.
