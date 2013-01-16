@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "The XRDP is now installed"
+# TODO fix some more logic in this file.
+#update-rc.d xrdp defaults
