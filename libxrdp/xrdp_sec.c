@@ -671,6 +671,26 @@ xrdp_sec_process_logon_info(struct xrdp_sec *self, struct stream *s)
         in_uint8s(s, 26);                                   /* skip stuff */
         in_uint32_le(s, self->rdp_layer->client_info.rdp5_performanceflags);
     }
+    /** Windows RDP clients that supports RDP v 8.0 sends domain information 
+     * and user information in the username field. 
+     * Microsoft KB2592687 */
+    if(len_domain==0 && len_user>0)
+    {
+        /* Find if there is a domain separator in the username*/
+        int slashpos  = g_pos(self->rdp_layer->client_info.username,"\\");
+        /*Maxsize is 256 of the username*/
+        if(slashpos>0 && slashpos<len_user && slashpos<255) 
+        {
+            char userNameTmp[256] ;
+            /* Copy the domain name part from the username*/
+            g_strncpy(self->rdp_layer->client_info.domain,self->rdp_layer->client_info.username,slashpos);
+            self->rdp_layer->client_info.domain[slashpos] = 0;
+            /* Might be dangerous to use memcpy, we do this once per session ==> not a performance problem */
+            g_strncpy(userNameTmp,&(self->rdp_layer->client_info.username[slashpos+1]),len_user-slashpos-1);
+            g_strncpy(self->rdp_layer->client_info.username,userNameTmp,len_user-slashpos-1);
+            self->rdp_layer->client_info.username[len_user-slashpos-1] = 0 ;	    
+        }	    
+    }
 
     DEBUG(("out xrdp_sec_process_logon_info"));
     return 0;
