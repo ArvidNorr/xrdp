@@ -1353,7 +1353,7 @@ static void DEFAULT_CC lfreerdp_syncronize(rdpContext* context)
 {
     struct mod *mod;
     mod = ((struct mod_context *)context)->modi;
-    LLOGLN(0, ("lfreerdp_synchronize received - not handled"));
+    LLOGLN(10, ("lfreerdp_synchronize received - not handled"));
 }
 
 /******************************************************************************/
